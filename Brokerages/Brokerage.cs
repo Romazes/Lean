@@ -731,17 +731,21 @@ namespace QuantConnect.Brokerages
         {
             lock (_lockCrossZeroObject)
             {
+                Log.Trace($"Brokerage.TryGetOrRemoveCrossZeroOrder: leanOrderStatus == OrderStatus.Filled ? {leanOrderStatus == OrderStatus.Filled}", true);
                 // Remove the order if it has already been filled
                 if (leanOrderStatus == OrderStatus.Filled && LeanOrderByZeroCrossBrokerageOrderId.TryRemove(brokerageOrderId, out leanOrder))
                 {
+                    Log.Trace($"Brokerage.TryGetOrRemoveCrossZeroOrder.LeanOrderByZeroCrossBrokerageOrderId.TryRemove = true", true);
                     return true;
                 }
                 // If the order is partially filled, retrieve it from the collection
                 else if (LeanOrderByZeroCrossBrokerageOrderId.TryGetValue(brokerageOrderId, out leanOrder))
                 {
+                    Log.Trace($"Brokerage.TryGetOrRemoveCrossZeroOrder.LeanOrderByZeroCrossBrokerageOrderId.TryGetValue = true", true);
                     return true;
                 }
                 // Return false if the brokerage order ID does not correspond to a cross-zero order
+                Log.Trace($"Brokerage.TryGetOrRemoveCrossZeroOrder.LeanOrderByZeroCrossBrokerageOrderId does not correspond to a cross-zero order", true);
                 return false;
             }
         }
@@ -753,23 +757,36 @@ namespace QuantConnect.Brokerages
         /// <param name="orderEvent">The event object containing order event details.</param>
         protected bool TryHandleRemainingCrossZeroOrder(Order leanOrder, OrderEvent orderEvent)
         {
+            Log.Trace($"Brokerage.TryHandleRemainingCrossZeroOrder: leanOrder != null ? {leanOrder != null}", true);
+            Log.Trace($"Brokerage.TryHandleRemainingCrossZeroOrder: orderEvent != null ? {orderEvent != null}", true);
+
+            if (orderEvent != null)
+            {
+                Log.Trace($"Brokerage.TryHandleRemainingCrossZeroOrder: orderEvent.Status == OrderStatus.Filled ? {orderEvent.Status == OrderStatus.Filled}", true);
+            }
+
             if (leanOrder != null && orderEvent != null
                 && orderEvent.Status == OrderStatus.Filled && _leanOrderByBrokerageCrossingOrders.TryRemove(leanOrder.Id, out var brokerageOrder))
             {
+                Log.Trace($"Brokerage.TryHandleRemainingCrossZeroOrder._leanOrderByBrokerageCrossingOrders.TryRemove ? TRUE", true);
+                Log.Trace($"Brokerage.TryHandleRemainingCrossZeroOrder._leanOrderByBrokerageCrossingOrders.TryRemove.orderEvent: {orderEvent}", true);
+                Log.Trace($"Brokerage.TryHandleRemainingCrossZeroOrder._leanOrderByBrokerageCrossingOrders.TryRemove.leanOrder: {leanOrder}", true);
+
                 // if we have a contingent that needs to be submitted then we can't respect the 'Filled' state from the order
                 // because the Lean order hasn't been technically filled yet, so mark it as 'PartiallyFilled'
                 orderEvent.Status = OrderStatus.PartiallyFilled;
                 OnOrderEvent(orderEvent);
-
+                Log.Trace($"Brokerage.TryHandleRemainingCrossZeroOrder._leanOrderByBrokerageCrossingOrders.TryRemove.orderEvent: Event was emitted", true);
                 Task.Run(() =>
                 {
 #pragma warning disable CA1031 // Do not catch general exception types
+                    Log.Trace($"Brokerage.TryHandleRemainingCrossZeroOrder._leanOrderByBrokerageCrossingOrders.TryRemove.orderEvent: RUN Task Second part of Cross Zero Order", true);
                     try
                     {
                         var response = default(CrossZeroOrderResponse);
                         lock (_lockCrossZeroObject)
                         {
-                            Log.Trace($"{nameof(Brokerage)}.{nameof(TryHandleRemainingCrossZeroOrder)}: Submit the second part of cross order by Id:{leanOrder.Id}");
+                            Log.Trace($"{nameof(Brokerage)}.{nameof(TryHandleRemainingCrossZeroOrder)}: Submit the second part of cross order by Id:{leanOrder.Id}", true);
                             response = PlaceCrossZeroOrder(brokerageOrder, false);
 
                             if (response.IsOrderPlacedSuccessfully)
