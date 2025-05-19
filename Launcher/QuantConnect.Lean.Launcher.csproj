@@ -42,6 +42,7 @@
     <Compile Include="..\Common\Properties\SharedAssemblyInfo.cs" Link="Properties\SharedAssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Lean.DataSource.Polygon\QuantConnect.Polygon\QuantConnect.DataSource.Polygon.csproj" />
     <ProjectReference Include="..\Algorithm.CSharp\QuantConnect.Algorithm.CSharp.csproj" />
     <ProjectReference Include="..\AlgorithmFactory\QuantConnect.AlgorithmFactory.csproj" />
     <ProjectReference Include="..\Algorithm\QuantConnect.Algorithm.csproj" />

@@ -6,10 +6,12 @@
   // two predefined environments, 'backtesting' and 'live', feel free
   // to add more!
 
-  "environment": "backtesting", // "live-paper", "backtesting", "live-interactive", "live-interactive-iqfeed"
+  "environment": "live-paper", // "live-paper", "backtesting", "live-interactive", "live-interactive-iqfeed"
 
   // algorithm class selector
-  "algorithm-type-name": "BasicTemplateFrameworkAlgorithm",
+  "algorithm-type-name": "BasicTemplateAlgorithm",
+
+  //"data-downloader": "QuantConnect.Lean.DataSource.Polygon.PolygonDataDownloader",
 
   // Algorithm language selector - options CSharp, Python
   "algorithm-language": "CSharp",
@@ -39,6 +41,7 @@
   "map-file-provider": "QuantConnect.Data.Auxiliary.LocalDiskMapFileProvider",
   "factor-file-provider": "QuantConnect.Data.Auxiliary.LocalDiskFactorFileProvider",
   "data-provider": "QuantConnect.Lean.Engine.DataFeeds.DefaultDataProvider",
+  //"data-provider": "QuantConnect.Lean.Engine.DataFeeds.DownloaderDataProvider",
   "data-channel-provider": "DataChannelProvider",
   "object-store": "QuantConnect.Lean.Engine.Storage.LocalObjectStore",
   "data-aggregator": "QuantConnect.Lean.Engine.DataFeeds.AggregationManager",
@@ -325,7 +328,7 @@
       "setup-handler": "QuantConnect.Lean.Engine.Setup.BrokerageSetupHandler",
       "result-handler": "QuantConnect.Lean.Engine.Results.LiveTradingResultHandler",
       "data-feed-handler": "QuantConnect.Lean.Engine.DataFeeds.LiveTradingDataFeed",
-      "data-queue-handler": [ "QuantConnect.Lean.Engine.DataFeeds.Queues.LiveDataQueue" ],
+      "data-queue-handler": [ "PolygonDataProvider" ],
       "real-time-handler": "QuantConnect.Lean.Engine.RealTime.LiveTradingRealTimeHandler",
       "transaction-handler": "QuantConnect.Lean.Engine.TransactionHandlers.BacktestingTransactionHandler"
     },
