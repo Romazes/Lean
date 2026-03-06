@@ -31,20 +31,24 @@ jobs:
         working-directory: Lean.Brokerages.ByBit/QuantConnect.BybitBrokerage.ToolBox
         run: dotnet build -c Release
 
-      - name: Write config.json next to built executable
-        env:
-          WS: ${{ github.workspace }}
+      - name: Setup paths (no config.json needed)
         run: |
-          python3 -c "import json,os; cfg={'data-folder':os.environ['WS']+'/Lean/Data/','temp-output-directory':'/tmp/lean-spdb'}; open('Lean.Brokerages.ByBit/QuantConnect.BybitBrokerage.ToolBox/bin/Release/config.json','w').write(json.dumps(cfg,indent=2))"
-          echo "config.json:"
-          cat Lean.Brokerages.ByBit/QuantConnect.BybitBrokerage.ToolBox/bin/Release/config.json
+          # Make the default temp-output-directory writable
+          sudo mkdir -p /temp-output-directory/symbol-properties
+          sudo chmod -R 777 /temp-output-directory
+          # Pre-populate with existing CSV so the updater can read+merge it
+          cp Lean/Data/symbol-properties/symbol-properties-database.csv \
+            /temp-output-directory/symbol-properties/symbol-properties-database.csv
+          # Symlink so default data-folder (../../../Data/) resolves to Lean/Data
+          ln -s ${{ github.workspace }}/Lean/Data \
+            ${{ github.workspace }}/Lean.Brokerages.ByBit/Data
 
       - name: Run Bybit SPDB updater
         working-directory: Lean.Brokerages.ByBit/QuantConnect.BybitBrokerage.ToolBox/bin/Release
         run: dotnet QuantConnect.Brokerages.Bybit.ToolBox.dll --app updater
 
-      - name: Copy updated CSV to Lean Data folder
-        run: cp /tmp/lean-spdb/symbol-properties/symbol-properties-database.csv Lean/Data/symbol-properties/symbol-properties-database.csv
+      - name: Copy updated CSV back to Lean Data folder
+        run: cp /temp-output-directory/symbol-properties/symbol-properties-database.csv Lean/Data/symbol-properties/symbol-properties-database.csv
 
       - name: Check for changes
         id: diff
