@@ -34,9 +34,23 @@ jobs:
             "${{ github.workspace }}" \
             > Lean.Brokerages.ByBit/QuantConnect.BybitBrokerage.ToolBox/config.json
 
+      - name: Setup Tor proxy
+        run: |
+          sudo apt-get install -y tor torsocks
+          sudo systemctl start tor
+          echo "Waiting for Tor circuit to be established..."
+          for i in $(seq 1 24); do
+            if nc -z 127.0.0.1 9050 2>/dev/null; then
+              echo "Tor SOCKS port is ready"
+              break
+            fi
+            echo "Attempt $i/24: Tor not yet ready, retrying in 5s..."
+            sleep 5
+          done
+
       - name: Run Bybit SPDB updater
         working-directory: Lean.Brokerages.ByBit/QuantConnect.BybitBrokerage.ToolBox
-        run: dotnet run -- --app updater
+        run: torsocks dotnet run -- --app updater
 
       - name: Copy updated file back to data folder
         run: |
