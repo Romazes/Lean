@@ -68,6 +68,7 @@ namespace QuantConnect.ToolBox
                     }
                     else if (!fetch)
                     {
+                        writer.Flush();
                         WriteData(writer);
                         fetch = true;
                     }
@@ -76,6 +77,7 @@ namespace QuantConnect.ToolBox
                 if (!fetch)
                 {
                     writer.WriteLine(Environment.NewLine);
+                    writer.Flush();
                     WriteData(writer);
                 }
             }
