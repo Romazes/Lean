@@ -15,19 +15,51 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout Lean
         uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          path: Lean
 
-      - name: Update Bybit SPDB
-        run: python update_bybit_spdb.py --data-folder Data
+      - name: Checkout Lean.Brokerages.ByBit
+        uses: actions/checkout@v4
+        with:
+          repository: QuantConnect/Lean.Brokerages.ByBit
+          path: Lean.Brokerages.ByBit
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Write ToolBox config.json
+        run: |
+          TEMP_DIR="${{ runner.temp }}/bybit-spdb-update"
+          mkdir -p "$TEMP_DIR"
+          cat > Lean.Brokerages.ByBit/QuantConnect.BybitBrokerage.ToolBox/config.json <<EOF
+          {
+            "data-folder": "${{ github.workspace }}/Lean/Data/",
+            "temp-output-directory": "$TEMP_DIR"
+          }
+          EOF
+
+      - name: Run Bybit SPDB updater
+        run: |
+          dotnet run --project Lean.Brokerages.ByBit/QuantConnect.BybitBrokerage.ToolBox \
+            -- --app updater
+
+      - name: Copy updated CSV to data folder
+        run: |
+          TEMP_CSV="${{ runner.temp }}/bybit-spdb-update/symbol-properties/symbol-properties-database.csv"
+          if [ -f "$TEMP_CSV" ]; then
+            cp "$TEMP_CSV" Lean/Data/symbol-properties/symbol-properties-database.csv
+          fi
+
+      - name: Cleanup config.json
+        run: rm -f Lean.Brokerages.ByBit/QuantConnect.BybitBrokerage.ToolBox/config.json
 
       - name: Check for changes
         id: diff
+        working-directory: Lean
         run: |
           git diff --quiet Data/symbol-properties/symbol-properties-database.csv \
             && echo "changed=false" >> $GITHUB_OUTPUT \
@@ -35,6 +67,7 @@ jobs:
 
       - name: Create PR with updated SPDB
         if: steps.diff.outputs.changed == 'true'
+        working-directory: Lean
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -45,13 +78,13 @@ jobs:
           git add Data/symbol-properties/symbol-properties-database.csv
           git commit -m "Update SPDB - Bybit"
           git push origin "$BRANCH"
-          PR_BODY="Automated update of Bybit entries in \`Data/symbol-properties/symbol-properties-database.csv\` via the Bybit public API."
           gh pr create \
             --title "Update SPDB - Bybit" \
-            --body "$PR_BODY" \
+            --body "Automated update of Bybit entries in \`Data/symbol-properties/symbol-properties-database.csv\` via the Bybit public API." \
             --base "${{ github.event.repository.default_branch }}" \
             --head "$BRANCH"
 
       - name: No changes detected
         if: steps.diff.outputs.changed == 'false'
         run: echo "symbol-properties-database.csv is already up to date."
+
