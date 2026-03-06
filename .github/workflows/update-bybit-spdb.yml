@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   update-spdb:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout Lean
         uses: actions/checkout@v4
@@ -25,24 +25,30 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '6.0.x'
+          dotnet-version: '10.0.x'
 
-      - name: Write ToolBox config.json
+      - name: Build ToolBox
+        working-directory: Lean.Brokerages.ByBit/QuantConnect.BybitBrokerage.ToolBox
+        run: dotnet build -c Release
+
+      - name: Setup paths via symlinks (no config.json needed)
         run: |
-          cat > Lean.Brokerages.ByBit/QuantConnect.BybitBrokerage.ToolBox/config.json <<'EOF'
-          {
-            "data-folder": "${{ github.workspace }}/Lean/Data/",
-            "temp-output-directory": "${{ github.workspace }}/Lean/Data"
-          }
-          EOF
+          # Redirect /temp-output-directory → writable workspace dir via symlink
+          mkdir -p $GITHUB_WORKSPACE/temp-spdb/symbol-properties
+          cp Lean/Data/symbol-properties/symbol-properties-database.csv \
+            $GITHUB_WORKSPACE/temp-spdb/symbol-properties/symbol-properties-database.csv
+          sudo ln -s $GITHUB_WORKSPACE/temp-spdb /temp-output-directory
+
+          # Make default data-folder (../../../Data/ from bin/Release/) resolve to Lean/Data
+          ln -s $GITHUB_WORKSPACE/Lean/Data \
+            $GITHUB_WORKSPACE/Lean.Brokerages.ByBit/Data
 
       - name: Run Bybit SPDB updater
-        run: |
-          dotnet run --project Lean.Brokerages.ByBit/QuantConnect.BybitBrokerage.ToolBox \
-            -- --app updater
+        working-directory: Lean.Brokerages.ByBit/QuantConnect.BybitBrokerage.ToolBox/bin/Release
+        run: dotnet QuantConnect.Brokerages.Bybit.ToolBox.dll --app updater
 
-      - name: Cleanup config.json
-        run: rm -f Lean.Brokerages.ByBit/QuantConnect.BybitBrokerage.ToolBox/config.json
+      - name: Copy updated CSV back to Lean Data folder
+        run: cp $GITHUB_WORKSPACE/temp-spdb/symbol-properties/symbol-properties-database.csv Lean/Data/symbol-properties/symbol-properties-database.csv
 
       - name: Check for changes
         id: diff
