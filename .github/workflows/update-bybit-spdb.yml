@@ -25,17 +25,22 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '6.0.x'
+          dotnet-version: '10.0.x'
 
       - name: Write ToolBox config.json
+        env:
+          WS: ${{ github.workspace }}
         run: |
-          printf '{\n  "data-folder": "%s/Lean/Data/",\n  "temp-output-directory": "%s/Lean/Data"\n}\n' \
-            "${{ github.workspace }}" "${{ github.workspace }}" \
-            > Lean.Brokerages.ByBit/QuantConnect.BybitBrokerage.ToolBox/config.json
+          python3 -c "import json,os; cfg={'data-folder':os.environ['WS']+'/Lean/Data/','temp-output-directory':os.environ['WS']+'/Lean/Data'}; open('Lean.Brokerages.ByBit/QuantConnect.BybitBrokerage.ToolBox/config.json','w').write(json.dumps(cfg,indent=2))"
+          echo "config.json written:"
+          cat Lean.Brokerages.ByBit/QuantConnect.BybitBrokerage.ToolBox/config.json
 
       - name: Run Bybit SPDB updater
         working-directory: Lean.Brokerages.ByBit/QuantConnect.BybitBrokerage.ToolBox
-        run: dotnet run -- --app updater
+        run: |
+          echo "CWD=$(pwd)"
+          cat config.json || echo "WARNING: config.json not found in CWD"
+          dotnet run -- --app updater
 
       - name: Cleanup config.json
         run: rm -f Lean.Brokerages.ByBit/QuantConnect.BybitBrokerage.ToolBox/config.json
