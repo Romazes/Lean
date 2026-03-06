@@ -1,0 +1,57 @@
+name: Update Bybit SPDB
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Run every Monday at 06:00 UTC
+    - cron: '0 6 * * 1'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-spdb:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Update Bybit SPDB
+        run: python update_bybit_spdb.py --data-folder Data
+
+      - name: Check for changes
+        id: diff
+        run: |
+          git diff --quiet Data/symbol-properties/symbol-properties-database.csv \
+            && echo "changed=false" >> $GITHUB_OUTPUT \
+            || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Create PR with updated SPDB
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH="update-bybit-spdb-$(date +%Y%m%d)"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add Data/symbol-properties/symbol-properties-database.csv
+          git commit -m "Update SPDB - Bybit"
+          git push origin "$BRANCH"
+          PR_BODY="Automated update of Bybit entries in \`Data/symbol-properties/symbol-properties-database.csv\` via the Bybit public API."
+          gh pr create \
+            --title "Update SPDB - Bybit" \
+            --body "$PR_BODY" \
+            --base "${{ github.event.repository.default_branch }}" \
+            --head "$BRANCH"
+
+      - name: No changes detected
+        if: steps.diff.outputs.changed == 'false'
+        run: echo "symbol-properties-database.csv is already up to date."
