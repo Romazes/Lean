@@ -37,7 +37,7 @@ jobs:
         run: |
           echo '{
             "data-folder": "../../../../Lean/Data/",
-            "bybit-api-url": "https://api.bybit.com",
+            "bybit-api-url": "https://api.bytick.com",
             "temp-output-directory": "/tmp/lean-symbol-updater"
           }' > ../Lean.Brokerages.ByBit/QuantConnect.BybitBrokerage.ToolBox/bin/Release/config.json
 
