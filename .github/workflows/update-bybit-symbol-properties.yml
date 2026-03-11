@@ -12,11 +12,15 @@ jobs:
 
     steps:
       - name: Connect to VPN
-        uses: kota65535/github-openvpn-connect-action@v3
-        with:
-          config_file: ${{ secrets.OVPN_CONFIG }}
-          username: ${{ secrets.OVPN_USERNAME }}
-          password: ${{ secrets.OVPN_PASSWORD }}
+        run: |
+          sudo apt-get install -y openvpn
+          echo "${{ secrets.OVPN_CONFIG }}" > /tmp/vpn.ovpn
+          printf '%s\n%s\n' "${{ secrets.OVPN_USERNAME }}" "${{ secrets.OVPN_PASSWORD }}" > /tmp/vpn-auth.txt
+          sed -i 's|^auth-user-pass$|auth-user-pass /tmp/vpn-auth.txt|g' /tmp/vpn.ovpn
+          sudo openvpn --config /tmp/vpn.ovpn --daemon --log /tmp/vpn.log
+          sleep 15
+          ip addr show tun0 || (echo "VPN failed:" && cat /tmp/vpn.log && exit 1)
+          rm -f /tmp/vpn-auth.txt
 
       - name: Checkout Romazes/Lean
         uses: actions/checkout@v4
