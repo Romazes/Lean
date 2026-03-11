@@ -11,6 +11,13 @@ jobs:
       pull-requests: write
 
     steps:
+      - name: Connect to VPN
+        uses: kota65535/github-openvpn-connect-action@v3
+        with:
+          config_file: ${{ secrets.OVPN_CONFIG }}
+          username: ${{ secrets.OVPN_USERNAME }}
+          password: ${{ secrets.OVPN_PASSWORD }}
+
       - name: Checkout Romazes/Lean
         uses: actions/checkout@v4
 
@@ -37,7 +44,7 @@ jobs:
         run: |
           echo '{
             "data-folder": "../../../../Lean/Data/",
-            "bybit-api-url": "https://api.bytick.com",
+            "bybit-api-url": "https://api.bybit.com",
             "temp-output-directory": "/tmp/lean-symbol-updater"
           }' > ../Lean.Brokerages.ByBit/QuantConnect.BybitBrokerage.ToolBox/bin/Release/config.json
 
