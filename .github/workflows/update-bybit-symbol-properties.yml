@@ -35,12 +35,20 @@ jobs:
 
       - name: Create ToolBox config
         run: |
-          echo '{"data-folder": "../../../../Lean/Data/", "bybit-api-url": "https://api.bybit.com"}' \
-            > ../Lean.Brokerages.ByBit/QuantConnect.BybitBrokerage.ToolBox/bin/Release/config.json
+          echo '{
+            "data-folder": "../../../../Lean/Data/",
+            "bybit-api-url": "https://api.bybit.com",
+            "temp-output-directory": "/tmp/lean-symbol-updater"
+          }' > ../Lean.Brokerages.ByBit/QuantConnect.BybitBrokerage.ToolBox/bin/Release/config.json
 
       - name: Run Symbol Properties Updater
         working-directory: ../Lean.Brokerages.ByBit/QuantConnect.BybitBrokerage.ToolBox/bin/Release
         run: dotnet QuantConnect.Brokerages.Bybit.ToolBox.dll --app updater
+
+      - name: Copy updated CSV to Lean data directory
+        run: |
+          cp /tmp/lean-symbol-updater/symbol-properties/symbol-properties-database.csv \
+            Data/symbol-properties/symbol-properties-database.csv
 
       - name: Check for changes
         id: check-changes
