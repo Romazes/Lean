@@ -78,7 +78,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           BRANCH="feature/update-bybit-symbol-properties-$(date +%Y%m%d-%H%M%S)"
           git checkout -b $BRANCH
-          git add Data/symbol-properties/symbol-properties-database.csv
+          git add -f Data/symbol-properties/symbol-properties-database.csv
           git commit -m "Update Bybit symbol properties $(date +%Y-%m-%d)"
           git push origin $BRANCH
           echo "branch=$BRANCH" >> $GITHUB_OUTPUT
