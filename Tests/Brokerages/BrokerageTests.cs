@@ -50,7 +50,7 @@ namespace QuantConnect.Tests.Brokerages
         [SetUp]
         public void Setup()
         {
-            Log.LogHandler = new NUnitLogHandler();
+            //Log.LogHandler = new NUnitLogHandler();
 
             Log.Trace("");
             Log.Trace("");
@@ -63,7 +63,7 @@ namespace QuantConnect.Tests.Brokerages
             _securityProvider = null;
             Thread.Sleep(1000);
             CancelOpenOrders();
-            LiquidateHoldings();
+            //LiquidateHoldings();
             Thread.Sleep(1000);
         }
 
@@ -79,7 +79,7 @@ namespace QuantConnect.Tests.Brokerages
                 Log.Trace("");
                 Thread.Sleep(1000);
                 CancelOpenOrders();
-                LiquidateHoldings();
+                //LiquidateHoldings();
                 Thread.Sleep(1000);
             }
             finally

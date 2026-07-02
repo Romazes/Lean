@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.4.33205.214
+# Visual Studio Version 18
+VisualStudioVersion = 18.6.11828.311 oobstable
 MinimumVisualStudioVersion = 15.0.0.0
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuantConnect.Lean.Launcher", "Launcher\QuantConnect.Lean.Launcher.csproj", "{09E7B916-E58B-4021-BD8B-C10B4446E226}"
 EndProject
@@ -55,6 +55,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuantConnect.Optimizer.Launcher", "Optimizer.Launcher\QuantConnect.Optimizer.Launcher.csproj", "{D46D2A8D-340C-4B40-8EE6-6BAA7B1198AB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuantConnect.DownloaderDataProvider.Launcher", "DownloaderDataProvider\QuantConnect.DownloaderDataProvider.Launcher.csproj", "{D139191E-50D5-4284-AC9C-247ED60950F4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuantConnect.PublicBrokerage", "..\Lean.Brokerages.Public\QuantConnect.PublicBrokerage\QuantConnect.PublicBrokerage.csproj", "{D5E13274-DD10-7504-8181-C432B4EEF659}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuantConnect.AlpacaBrokerage", "..\Lean.Brokerages.Alpaca\QuantConnect.AlpacaBrokerage\QuantConnect.AlpacaBrokerage.csproj", "{F84D4AC9-6E7B-4154-B806-00B4DEFD5394}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -152,6 +156,14 @@ Global
 		{D139191E-50D5-4284-AC9C-247ED60950F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D139191E-50D5-4284-AC9C-247ED60950F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D139191E-50D5-4284-AC9C-247ED60950F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5E13274-DD10-7504-8181-C432B4EEF659}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5E13274-DD10-7504-8181-C432B4EEF659}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5E13274-DD10-7504-8181-C432B4EEF659}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5E13274-DD10-7504-8181-C432B4EEF659}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F84D4AC9-6E7B-4154-B806-00B4DEFD5394}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F84D4AC9-6E7B-4154-B806-00B4DEFD5394}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F84D4AC9-6E7B-4154-B806-00B4DEFD5394}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F84D4AC9-6E7B-4154-B806-00B4DEFD5394}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

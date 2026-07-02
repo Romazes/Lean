@@ -27,6 +27,7 @@ using QuantConnect.Orders.Fees;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using QuantConnect.Api;
+using QuantConnect.Configuration;
 using QuantConnect.Brokerages.Authentication;
 using QuantConnect.Brokerages.CrossZero;
 using QuantConnect.Util;
@@ -479,6 +480,15 @@ namespace QuantConnect.Brokerages
         /// <returns>True if the cash sync should be performed</returns>
         public virtual bool ShouldPerformCashSync(DateTime currentTimeUtc)
         {
+            // TEST-ONLY: when "force-cash-sync-seconds" is set to a positive value in config.json, bypass the
+            // once-per-day 7:45 AM NY gate and re-sync that often so GetCashBalance() correctness can be checked
+            // on demand in a live deployment. Defaults to 0 (off), so normal runs are unaffected. Remove before merging.
+            var forceCashSyncSeconds = Config.GetInt("force-cash-sync-seconds", 0);
+            if (forceCashSyncSeconds > 0)
+            {
+                return currentTimeUtc - LastSyncDateTimeUtc >= TimeSpan.FromSeconds(forceCashSyncSeconds);
+            }
+
             // every morning flip this switch back
             var currentTimeNewYork = currentTimeUtc.ConvertFromUtc(TimeZones.NewYork);
             if (_syncedLiveBrokerageCashToday && currentTimeNewYork.Date != LastSyncDate)
