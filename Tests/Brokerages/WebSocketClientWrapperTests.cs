@@ -76,6 +76,46 @@ namespace QuantConnect.Tests.Brokerages
         }
 
         [Test]
+        public void SendBytesSendsOneBinaryMessage()
+        {
+            var tcpListener = new TcpListener(IPAddress.Loopback, 0);
+            tcpListener.Start();
+            var port = ((IPEndPoint)tcpListener.LocalEndpoint).Port;
+            tcpListener.Stop();
+
+            using var server = new HttpListener();
+            server.Prefixes.Add($"http://127.0.0.1:{port}/");
+            server.Start();
+            var serverBuffer = new byte[1024];
+            var serverReceive = Task.Run(async () =>
+            {
+                var context = await server.GetContextAsync();
+                var webSocket = (await context.AcceptWebSocketAsync(null)).WebSocket;
+                return await webSocket.ReceiveAsync(new ArraySegment<byte>(serverBuffer), CancellationToken.None);
+            });
+
+            var webSocketClient = new WebSocketClientWrapper();
+            webSocketClient.Initialize($"ws://127.0.0.1:{port}/");
+            using var opened = new ManualResetEventSlim();
+            webSocketClient.Open += (_, _) => opened.Set();
+
+            webSocketClient.Connect();
+            Assert.IsTrue(opened.Wait(TimeSpan.FromSeconds(10)));
+
+            // bytes above 127 are not valid UTF-8 on their own, a text message can not carry them
+            var data = new byte[] { 0x08, 0x96, 0x01, 0xFF, 0x00, 0x80 };
+            webSocketClient.Send(data);
+
+            Assert.IsTrue(serverReceive.Wait(TimeSpan.FromSeconds(5)), "The server received no message");
+            var result = serverReceive.Result;
+            Assert.AreEqual(WebSocketMessageType.Binary, result.MessageType);
+            Assert.IsTrue(result.EndOfMessage);
+            CollectionAssert.AreEqual(data, new ArraySegment<byte>(serverBuffer, 0, result.Count).ToArray());
+
+            webSocketClient.Close();
+        }
+
+        [Test]
         public void CloseRaisesClosedWhenAConcurrentConnectResetsTheClient()
         {
             var webSocketClient = new ConnectOnCloseWebSocketClientWrapper();

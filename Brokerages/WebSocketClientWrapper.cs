@@ -70,6 +70,19 @@ namespace QuantConnect.Brokerages
         }
 
         /// <summary>
+        /// Sends the data as one binary message
+        /// </summary>
+        /// <param name="data">The bytes to send</param>
+        public void Send(byte[] data)
+        {
+            lock (_locker)
+            {
+                var buffer = new ArraySegment<byte>(data);
+                _client.SendAsync(buffer, WebSocketMessageType.Binary, true, _cts.Token).SynchronouslyAwaitTask();
+            }
+        }
+
+        /// <summary>
         /// Wraps Connect method
         /// </summary>
         public void Connect()
